@@ -5,9 +5,11 @@ from django.utils.formats import mark_safe
 from multiupload.fields import MultiFileField
 
 from td.models import Language
+from td.publishing.fields import ResourceTypeField
 from td.publishing.models import (
     RecentCommunication, Connection, OfficialResource, PublishRequest)
 from td.publishing.translations import TRANSLATION_TYPES
+from td.publishing.widgets import ResourceTypeWidget
 
 
 class RecentComForm(forms.ModelForm):
@@ -183,6 +185,9 @@ class PublishRequestForm(forms.ModelForm):
                 self.fields["language"].widget.attrs["data-lang-gl"] = lang.gateway_flag
             except:
                 pass
+
+        # custom resource type selector widget
+        self.fields["new_resource_type"] = ResourceTypeField()
 
         # these fields are not present when the user is creating a new publish request
         if 'rejected_at' in self.fields:

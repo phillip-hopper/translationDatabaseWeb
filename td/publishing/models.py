@@ -3,10 +3,8 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
-
 from jsonfield import JSONField
 from reversion import revisions as reversion
-
 from td.models import Language
 from td.publishing.resources import RESOURCE_TYPES
 
@@ -89,15 +87,44 @@ CHECKING_LEVEL_CHOICES = [
 
 
 @python_2_unicode_compatible
+class OfficialResourceSubType(models.Model):
+    short_name = models.CharField(max_length=5, help_text="a 5 character identification code")
+    long_name = models.CharField(max_length=50, help_text="a more descriptive name")
+
+    def __str__(self):
+        return "({0}) {1}".format(self.short_name, self.long_name)
+
+
+@python_2_unicode_compatible
+class ScriptureBook(models.Model):
+    book_num = models.PositiveIntegerField(primary_key=True)
+    short_name = models.CharField(max_length=3, help_text="a 3 character abbreviation")
+    long_name = models.CharField(max_length=50, help_text="the full name")
+
+    def __str__(self):
+        return "({0}) {1}".format(self.short_name, self.long_name)
+
+    @property
+    def is_old_testament(self):
+        return self.book_num < 40
+
+    @property
+    def is_new_testament(self):
+        # there is no book 40 in USFM, Malachi is 39 and Matthew is 41
+        return self.book_num > 40
+
+
+@python_2_unicode_compatible
 class OfficialResourceType(models.Model):
     short_name = models.CharField(max_length=5, help_text="a 5 character identification code")
     long_name = models.CharField(max_length=50, help_text="a more descriptive name")
     description = models.TextField(blank=True)
+    sub_types = models.ManyToManyField(OfficialResourceSubType)
 
     def ingest(self, language, publish_request):
-        ResourceIngestor = RESOURCE_TYPES.get(self.short_name)
-        if ResourceIngestor:
-            resource_ingestor = ResourceIngestor(language.code, publish_request)
+        resource_ingestor = RESOURCE_TYPES.get(self.short_name)
+        if resource_ingestor:
+            resource_ingestor = resource_ingestor(language.code, publish_request)
             chapters = resource_ingestor.fetch_chapters()
             resource_doc = ResourceDocument()
             resource_doc.json_data = chapters
@@ -247,7 +274,7 @@ class PublishRequest(models.Model):
             "lc": self.language.code,
             "name": self.language.name,
             "status": {
-                "checking_entity": "",  # orgs aren't being added to resources
+                "checking_entity": "",  # these aren't being added to resources
                 "checking_level": self.checking_level,
                 "contributors": self.contributors,
                 "publish_date": self.approved_at.isoformat(),
