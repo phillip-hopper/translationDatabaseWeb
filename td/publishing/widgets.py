@@ -11,10 +11,14 @@ class ResourceTypeWidget(widgets.MultiWidget):
         resource_subtypes = [(r.short_name, r.long_name) for r in OfficialResourceSubType.objects.all()]
         scripture_books = [(r.short_name, r.long_name) for r in ScriptureBook.objects.all()]
 
+        # insert blank option as the default
+        resource_subtypes.insert(0, ("", ""))
+        scripture_books.insert(0, ("", ""))
+
         _widgets = (
-            widgets.Select(attrs=attrs, choices=resource_types),
-            widgets.Select(attrs=attrs, choices=resource_subtypes),
-            widgets.Select(attrs=attrs, choices=scripture_books),
+            widgets.Select(attrs={"data-class": "resource-type"}, choices=resource_types),
+            widgets.Select(attrs={"data-class": "resource-subtype", "style": "display: none"}, choices=resource_subtypes),
+            widgets.Select(attrs={"data-class": "scripture-book", "style": "display: none"}, choices=scripture_books),
         )
         super(ResourceTypeWidget, self).__init__(_widgets, attrs)
 

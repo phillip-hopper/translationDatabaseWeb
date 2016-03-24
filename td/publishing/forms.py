@@ -187,7 +187,7 @@ class PublishRequestForm(forms.ModelForm):
                 pass
 
         # custom resource type selector widget
-        self.fields["new_resource_type"] = ResourceTypeField()
+        self.fields["new_resource_type"] = ResourceTypeField(label="Resource Type")
 
         # these fields are not present when the user is creating a new publish request
         if 'rejected_at' in self.fields:

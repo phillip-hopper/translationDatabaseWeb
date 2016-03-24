@@ -338,3 +338,9 @@ def ajax_language_version(request):
     search_lang = request.GET.get("q").lower().encode("utf-8")
     lang = get_object_or_404(Language, pk=search_lang)
     return JsonResponse({"current_version": lang.version})
+
+
+def ajax_resource_subtypes(request):
+    query = request.GET.get("q").lower().encode("utf-8")
+    resource_type = get_object_or_404(OfficialResourceType, short_name=query)
+    return JsonResponse(resource_type.sub_types)
